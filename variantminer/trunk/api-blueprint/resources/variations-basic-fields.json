@@ -1,0 +1,21 @@
+{
+    "variations": [{
+        "id": "chr1-1341205-0001",
+        "ref": "T",
+        "alt": "C",
+        "gene": "MRPL20",
+        "rsIds": "rs140521637",
+        "numHomRef": 142,
+        "numHet": 1,
+        "numHomAlt": 0
+    }, {
+        "id": "chr1-2290142-0001",
+        "ref": "G",
+        "alt": "A",
+        "gene": "MORN1",
+        "rsIds": "rs34587196",
+        "numHomRef": 138,
+        "numHet": 4,
+        "numHomAlt": 0
+    }]
+}

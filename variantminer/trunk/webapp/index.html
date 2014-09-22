@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gemini Frontend App</title>
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+
+  <!-- Optional theme -->
+  <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+
+  <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+  <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+  <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+
+  <!-- Latest compiled and minified JavaScript -->
+  <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+  <link rel="stylesheet" href="lib/jquery.tablesorter-2.0.5/themes/blue/style.css">
+  <script src="lib/jquery.tablesorter-2.0.5/jquery.tablesorter.min.js"></script>
+
+  <script src="lib/underscore-1.6.0/underscore-min.js"></script>
+  <script src="lib/backbone-1.1.2/backbone-min.js"></script>
+
+  <style type="text/css">
+    /** OVERRIDE tablesorter's blue style **/
+    .table.tablesorter thead tr th {
+      border: 1px solid #ddd;
+    }
+
+    .criteria           { margin-top:12px; }
+    .criteria .field    { width:200px; float:left; margin-left:12px; }
+    .criteria .operator { width:200px; float:left; margin-left:12px; }
+    .criteria .value    { width:200px; float:left; margin-left:12px; }
+    .criteria .display  { float:left; margin-left:12px; }
+    .criteria .actions  { float:left; margin-left:12px; }
+    .criteria .remove   { }
+
+    /*
+    #source-tables  { width:49%; float:left; margin-top:20px; }
+    #query          { width:49%; float:left; margin-top:20px; margin-left:2%; }
+    */
+    #variations     { width:59%; float:left; clear:both; margin-top:20px; }
+    #samples        { width:39%; float:left; margin-top:20px; margin-left:2%; }
+
+    #variations tbody tr:hover    { cursor: pointer; cursor: hand; }
+
+    .source-table             { width:300px; float:left; margin-left:20px; }
+    .source-table li:hover    { cursor: pointer; cursor: hand; }
+    .source-table .panel-body { max-height:300px; overflow:auto; }
+  </style>
+
+
+  <script type="text/JavaScript">
+
+  var HOST        = "69.165.210.68";
+  var PORT        = 50000;
+  var ROOT_URI    = "http://" + HOST + ":" + PORT;
+  var SEARCH_URI  = ROOT_URI + "/variations/search/";
+  var TABLES_URI  = ROOT_URI + "/tables";
+  var SAMPLES_URI = ROOT_URI + "/variations/";
+
+  var CRITERIA_SEP = "&";
+  var FIELD_SEP    = ",";
+  var PARAM_SEP    = "&";
+  var PARENTHESIS_OPERATORS = ["in","notIn","startsWith","endsWith","contains"];
+  var QUOTE_OPERATORS       = ["startsWith","endsWith","contains"];
+
+
+  function loadSourceTables()
+  {
+    $.get(TABLES_URI).done( function(data) {
+      var parsed = JSON.parse(data);
+      //console.log("parsed=", parsed);
+
+      $(parsed).each( function(i, item) {
+        //console.log("i=", i, " item=", item);
+        addSourceTable( item.name, item.fields );
+      });
+
+      // init events
+      $( ".source-table li").click( function(e) {
+        // TODO: FIXME: there is a bug if the click occurs on the '+' sign
+        // The e.target is the <a> anchor instead of the element.
+        //console.log("clicked on table: ", e, e.target);
+        var field    = e.target.getAttribute("field");
+        var dataType = $(e.target).find(".badge").text();
+
+        addCriteria( field, dataType );
+      });
+
+    });
+  }
+
+
+  // TODO: badges: <span class="badge">42</span>
+
+  function buildCriteria( field, operator, value )
+  {
+    var criteria = null;
+
+    if (operator != "") {
+      if ( $.inArray(operator, PARENTHESIS_OPERATORS) > -1 ) {
+        if ( $.inArray(operator, QUOTE_OPERATORS) > -1 ) {
+          criteria = field + " " + operator + '("' + value + '")';
+        } else {
+          criteria = field + " " + operator + '(' + value + ')';
+        }
+      } else {
+        criteria = field + operator + value;
+      }
+    }
+
+    return criteria;
+  }
+
+
+  function buildVisibleFieldList()
+  {
+    var field;
+    var fields    = [];
+    var isDisplayed;
+
+    $('.criteria').map( function(i, row) {
+      field       = $(row).find(".field input").val();
+      isDisplayed = $(row).find(".display input").prop("checked");
+
+      if (isDisplayed) {
+        fields.push( field );
+      }
+    });
+    return fields;
+  }
+
+
+  function buildCriteriaList()
+  {
+    var criterias = [];
+    var field;
+    var operator;
+    var value;
+
+    $('.criteria').map( function(i, row) {
+      field       = $(row).find(".field input").val();
+      operator    = $(row).find(".operator select").val();
+      value       = $(row).find(".value input").val();
+
+      console.log("\tFound criteria: " + field + " " + operator + " " + value);
+
+      if (operator != "") {
+        criterias.push( buildCriteria( field, operator, value ) );
+      }
+    });
+
+    return criterias;
+  }
+
+
+  function buildQueryParams( fields, limit, offset )
+  {
+    queryParams = [];
+    queryParams.push( "fields=" + fields.join(FIELD_SEP) );
+    queryParams.push( "limit="  + limit );
+    queryParams.push( "offset="  + offset );
+
+    return queryParams;
+  }
+
+
+  function buildVariationsSearchURL( criterias, fields, limit, offset )
+  {
+    var queryParams = buildQueryParams( fields, limit, offset );
+
+    // e.g. http://69.165.210.68:50000/variations/search/qual>80&ref=G?fields=ref,qual&limit=10
+    return SEARCH_URI + criterias.join(CRITERIA_SEP) + "?" + queryParams.join(PARAM_SEP);
+  }
+
+
+  function searchVariations()
+  {
+    var criterias   = buildCriteriaList();
+    var fields      = buildVisibleFieldList();
+    var limit       = $('#limit').val();
+    var offset      = $('#offset').val();
+    var url         = buildVariationsSearchURL( criterias, fields, limit, offset );
+
+    var resultsTable = $('#variations table');
+    console.log(resultsTable);
+
+    $.get(url).done( function(data) {
+      //console.log(data);
+      var parsed = JSON.parse(data);
+      //console.log("after parse:");
+      //console.log(parsed);
+      renderVariationsResults( resultsTable, fields, parsed );
+    });
+    //console.log( url );
+    //alert( url );
+  }
+
+  function renderVariationsResults( tableEl, fields, data )
+  {
+    var thead = '<thead><tr>\n<th class="header headerSortDown">#</th>\n';
+    thead += '<th class="header">Variation ID</th>\n';
+
+    $(fields).each(function(i, item) {
+      thead += '<th class="header">' + item + '</th>\n';
+    });
+    thead += '</thead>\n';
+
+    //console.log( thead );
+
+    var tbody = '<tbody>\n';
+
+    var value;
+
+    $(data).each(function(i, item) {
+      tbody += '<tr>\n<td>' + i + '</td>\n';
+      tbody += '<td>' + item.id + '</td>\n';
+
+      for (var j = 0; j < fields.length; j++) {
+        value = item[ fields[j] ];
+        tbody += '<td>' + value + '</td>\n';
+      };
+      tbody += '</tr>\n';
+    });
+    tbody += '</tbody>';
+
+    //console.log( tbody );
+
+    tableEl.html( thead + tbody );
+
+
+    // INIT EVENTS --- WARNING DIRTY HACK
+    // FIXME: is it safe to call the tablesorter() method every time ?
+    tableEl.tablesorter();
+
+    $('#variations tbody tr').click( function(e) {
+      console.log(e);
+      //window.bade = e;
+      var tds         = $(e.target.parentNode).find('td');
+      var rank        = tds[0].innerHTML;
+      var variationId = tds[1].innerHTML;
+
+      console.log("Clicked on variation '" + variationId + "' ranked at #" + rank);
+
+      renderVariationSamples( variationId, rank );
+    });
+  }
+
+
+  function renderVariationSamples( variationId, theRank )
+  {
+    var cnt = $('#samples table');
+
+    // TODO: cache template
+    var t = _.template( $('#samples-table-template').html() );
+
+    var url = SAMPLES_URI + variationId;
+
+    $.get(url).done( function(data) {
+      //console.log(data);
+      var parsed = JSON.parse(data);
+      //console.log("after parse:");
+      //console.log(parsed);
+      console.log(parsed.genotypes)
+
+      cnt.html( t( {rank: theRank, samples:parsed.genotypes} ) );
+
+      // FIXME: is it safe to call the tablesorter() method every time ?
+      cnt.tablesorter();
+    });
+  }
+
+
+  function addCriteria( fieldName, dataType )
+  {
+    console.log("addCriteria(fieldName="+fieldName + ", dataType="+dataType+")");
+    var criteriasCnt = $("#criterias");
+
+    //TODO: we should cache the template
+    var t = _.template( $('#criteria-template').html() );
+    
+    criteriasCnt.append( t({field:fieldName}) );
+  }
+
+  function addSourceTable( tableName, theColumns )
+  {
+    console.log("Adding source table: ", tableName, " with fields: ", theColumns );
+
+    var cnt = $("#source-tables > .panel-body");
+
+    // TODO: cache template
+    var t = _.template( $('#source-table-template').html() );
+
+    cnt.append( t( {name:tableName, columns:theColumns} ) );
+    //cnt.append( t( {name:tableName, columns:[]} ) );
+  }
+
+  </script>
+</head>
+
+<body class="container-fluid">
+
+  <!-- Templates -->
+
+ <!--
+ _.template($('#item-template').html()
+ var t = _.template( $('#item-template').html() );
+ t({"done":false, "title":"hello"})
+-->
+
+
+  <script type="text/template" id="criteria-template">
+    <div class="criteria row">
+      <div class="field">
+        <input type="text" class="form-control" value="<%- field %>" disabled>
+      </div>
+      <div class="operator">
+        <select class="form-control">
+          <option value="">(no operator chosen)</option>
+          <option value="&lt;">&lt;</option>
+          <option value="&lt;=">&lt;=</option>
+          <option value="=">=</option>
+          <option value="!=">!=</option>
+          <option value="&gt;=">&gt;=</option>
+          <option value="&gt;">&gt;</option>
+          <option value="in">in</option>
+          <option value="notIn">not in</option>
+          <option value="startsWith">starts with</option>
+          <option value="endsWith">ends with</option>
+          <option value="contains">contains</option>
+        </select>
+      </div>
+      <div class="value">
+        <input type="text" class="form-control" placeholder="Enter the critera" value="">
+      </div>
+      <div class="display">
+        <label class="checkbox">
+          <input type="checkbox" checked> Display
+        </label>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn btn-sm btn-default remove">
+          <span class="glyphicon glyphicon-remove"></span>
+        </button>
+      </div>
+    </div>
+  </script>
+
+
+  <script type="text/template" id="source-table-template">
+    <div class="panel panel-success source-table">
+      <div class="panel-heading">
+        <h3 class="panel-title"><%- name %></h3>
+      </div>
+      <div class="panel-body">
+        <ul class="list-group">
+        <% _.each(columns, function(column) { %>
+          <li class="list-group-item" field="<%- column.name %>">
+            <span class="glyphicon glyphicon-plus"></span>
+            <span class="badge"><%- column.type %></span>
+            <%- column.name %>
+          </li>
+        <% }); %>
+        </ul>
+      </div>
+    </div>
+  </script>
+
+  <script type="text/template" id="samples-table-template">
+    <thead>
+      <tr>
+        <th class="header headerSortDown">Sample ID</th>
+        <th class="header">GT <%- rank %></th>
+        <th class="header">Qual <%- rank %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% _.each(samples, function(sample) { %>
+      <tr>
+        <td><%- sample.sampleId %></td>
+        <td><%- sample.gtType %></td>
+        <td><%- sample.gtQual %></td>
+      </tr>
+      <% }); %>
+    </tbody>
+  </script>
+
+
+  <!-- MAIN VIEW -->
+
+  <div class="top">
+    <div class="panel panel-primary" id="source-tables">
+      <div class="panel-heading">
+        <h3 class="panel-title">Available tables</h3>
+      </div>
+      <div class="panel-body">
+
+      </div>
+    </div>
+    
+    <div class="panel panel-primary" id="query">
+      <div class="panel-heading">
+        <h3 class="panel-title">Variations Query</h3>
+      </div>
+      <div class="panel-body">
+        <form class="form-inline" role="form">
+
+          <div id="criterias">
+            <!-- criteries will be added here -->
+          </div>
+          
+          <div class="row">
+            <button type="button" id="search" class="btn btn-lg btn-default" style="margin:20px;">
+              <span class="glyphicon glyphicon-search"></span> Search
+            </button>
+            <label>
+              Limit:
+              <input type="text" id="limit"  class="form-control" value="10">
+            </label>
+            <label>
+              Offset:
+              <input type="text" id="offset" class="form-control" value="0">
+            </label>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel panel-primary" id="variations">
+    <div class="panel-heading">
+      <h3 class="panel-title">Variations</h3>
+    </div>
+    <div class="panel-body">
+      <table class="table table-striped table-bordered table-hover tablesorter" style="border: 1px solid #DDD;">
+        <thead>
+          <tr>
+            <th class="header headerSortDown">Variation ID</th>
+            <th class="header">First Name</th>
+            <th class="header">Last Name</th>
+            <th class="header">Language</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Your</td>
+            <td>One</td>
+            <td>English</td>
+          </tr><tr>
+            <td>2</td>
+            <td>Joe</td>
+            <td>Sixpack</td>
+            <td>English</td>
+          </tr><tr>
+            <td>3</td>
+            <td>Stu</td>
+            <td>Dent</td>
+            <td>Code</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel panel-primary" id="samples">
+    <div class="panel-heading">
+      <h3 class="panel-title">Samples</h3>
+    </div>
+    <div class="panel-body">
+      <table class="table table-striped table-bordered table-hover tablesorter" style="border: 1px solid #DDD;">
+        <thead>
+          <tr>
+            <th class="header headerSortDown">Sample ID</th>
+            <th class="header">Group</th>
+            <th class="header">GT 1</th>
+            <th class="header">Qual 1</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Your</td>
+            <td>One</td>
+            <td>English</td>
+          </tr><tr>
+            <td>2</td>
+            <td>Joe</td>
+            <td>Sixpack</td>
+            <td>English</td>
+          </tr><tr>
+            <td>3</td>
+            <td>Stu</td>
+            <td>Dent</td>
+            <td>Code</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script type="text/JavaScript">
+    $(document).ready( function() {
+
+      $( "#search" ).click(function() {
+        searchVariations();
+      });
+
+      /*
+      $( ".source-table li").click( function(e) {
+        console.log(e);
+        var field    = e.target.getAttribute("field");
+        var dataType = $(e.target).find(".badge").text();
+
+        addCriteria( field, dataType );
+      });
+
+      $("table").tablesorter();
+*/
+
+      loadSourceTables();
+    });
+
+    // Hold SHIFT to sort using two columns or more at once
+  </script>
+</body><!-- /.container -->
+</html>

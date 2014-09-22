@@ -1,0 +1,40 @@
+{
+    "variations": [{
+        "id": "chr1-1341205-0001",
+        "ref": "T",
+        "alt": "C",
+        "gene": "MRPL20",
+        "rsIds": "rs140521637",
+        "numHomRef": 142,
+        "numHet": 1,
+        "numHomAlt": 0,
+        "genotypes": [
+            {"sampleId": 18,  "gt": 1, "gtQual": 71 },
+            {"sampleId": 75,  "gt": 2, "gtQual": 15 },
+            {"sampleId": 95,  "gt": 2, "gtQual": 73 },
+            {"sampleId": 301, "gt": 0, "gtQual": 2 }
+        ]
+    }, {
+        "id": "chr1-2290142-0001",
+        "ref": "G",
+        "alt": "A",
+        "gene": "MORN1",
+        "rsIds": "rs34587196",
+        "numHomRef": 138,
+        "numHet": 4,
+        "numHomAlt": 0,
+        "genotypes": [
+            {"sampleId": 18,  "gt": 0, "gtQual": 79 },
+            {"sampleId": 75,  "gt": 1, "gtQual": 56 },
+            {"sampleId": 95,  "gt": 2, "gtQual": 81 },
+            {"sampleId": 301, "gt": 1, "gtQual": 85 }
+        ]
+    }],
+    
+    "samples" : {
+         "18": { "group": "Ctrl" },
+         "75": { "group": "FG1" },
+         "95": { "group": "FG2" },
+        "301": { "group": "FG3" }
+    }
+}

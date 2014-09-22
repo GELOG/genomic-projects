@@ -1,0 +1,2 @@
+
+python ./scripts/apiblueprint-preprocessor.py api.md /tmp/api-merged.md && ./scripts/apiblueprint-generate-doc.sh /tmp/api-merged.md api.html

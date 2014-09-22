@@ -1,0 +1,2 @@
+id	chrom	start	end	ref	alt	gene	qual	Total_samples_FG1	Total_samples_FG2	Total_samples_FG3	Total_samples_ctrl	call_rate	rs_ids	pfam_domain	rmsk	in_cpg_island	in_segdup	is_conserved	gms_illumina	gms_solid	in_cse	gerp_bp_score	depth	rms_map_qual	impact_severity	aaf_esp_all	aaf_esp_ea	aaf_1kg_all	aaf_1kg_eur	num_hom_ref	num_het	num_hom_alt	khi2	anova
+chr1-1341205-0001	chr1	1341205	1341206	T	C	MRPL20	133	1	0	0	0	1	rs140521637	Ribosomal_L20,Ribosomal_L20	-1	0	0	0	-1	-1	0	-1	15549	40	MED	0.000308	0.000349	-1	-1	142	1	0	TODO	TODO
