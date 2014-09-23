@@ -1,24 +1,56 @@
-= ICMS API Blueprint
+= VariantMiner API Blueprint
 
-API Blueprint is an open source specification that helps describe API.
+== Introduction
 
-The official implementation is http://apiary.io/, but ICMS uses Aglio for HTML compilation.
+=== What is an API blueprint ?
+An [API blueprint](http://apiblueprint.org/) is an open source specification that helps describe an API. The official implementation, [Apiary.io](http://apiary.io/) is web-based. However, this project uses Aglio, to compile the blueprint from the markdown syntax to HTML.
+
+=== Dependencies
+
+To compile and view the HTML output of this blueprint, you'll require these dependencies:
+
+* [Python](https://www.python.org/)
+* [Node.js](http://nodejs.org/)
+* [Aglio](https://github.com/danielgtaylor/aglio),  (a Node.js module)
 
 
-== Dependencies
+== Installation
 
-* Python
-* Node.js
-* Aglio (Node.js module)
+=== Ubuntu
 
-sudo apt-get install nodejs
+```
+sudo apt-get install nodejs npm
 sudo npm install -g aglio
+sudo apt-get install apache2
+```
 
-https://github.com/danielgtaylor/aglio
+=== Mac OS X
+It should work, but untested. If you manage to do it, please document it here.
+
+=== Windows
+Even though it should work, I was unable to install Aglio on Windows. If you manage to do it, please document it here.
 
 
-== Files & Directory Structure
 
+== Viewing the HTML documentation
+
+1. Follow installation instructions
+2. Combines all files into a single markdown file (the preprocessor is provided): 
+   `python ./scripts/apiblueprint-preprocessor.py api.md /tmp/api-merged.md
+3. Compile the merged markdown file into HTML
+   `sudo aglio -t "./layout/default-multi.jade" -i /tmp/api-merged.md -o /var/www/html/api.html`
+4. Open http://localhost/api.html in your web browser (*)
+
+(*) You can use your web browser, but the files need to be served by a web server (e.g. the 'file://' protocol does not work). The easiest is drop the file in the apache html directory.
+
+
+
+== Modifying the API Blueprint
+
+
+=== Files & Directory Structure
+
+```
 blueprint/
   layout/
     *.jade                Jade templates for generating the HTML output.
@@ -37,73 +69,17 @@ blueprint/
   compile.sh.sample       Sample shortcut that calls both scripts to produce the HTML format in API blueprint.
   icms-api.md             Root .md document that includes the other markdown documents.
   README                  This file.
-
-
-== Generating HTML from Markdown files
-
-Steps:
-
-1. Combines all web services into 1 file (Markdown does not support multiple files)
-2. Compile the combined blueprint into HTML
-
-For example (the actual contents of the compile.sh.sample file):
-
-```
-python ./scripts/apiblueprint-preprocessor.py icms-api.md /tmp/icms.html
-./scripts/apiblueprint-generate-doc.sh /tmp/icms.html /var/www/html/icms/backend/david.html
 ```
 
 
-== ICMS Blueprint Convention
+=== Markdown & API Blueprint Syntax
 
-=== Anatomy of one web service
-
-Each web service is separated in its own .md file in the services/ directory. For each web service, there is usually two json files in the resources/ directory. For example, the Address web service is distributed in 3 files:
-
-  services/address.md
-  resources/address.json
-  resources/address.new.json
-
-The `address.json` file describes an Address with all its attributes, usually used in the HTTP response payload.
-While the `address.new.json` file describes an Address without its read-only attributes, usually used in the HTTP request payload.
-
-Note: most web services follow this convention, but they are allowed to differ if needed.
-
-=== UML Diagrams
-
-Most web services includes a simple UML diagram to describe the conceptual relationships. The tool Yuml.me / Scruffy takes an URL in input and generates a PNG image in output.
-
-For examples, see:
-  http://yuml.me/diagram/scruffy/class/samples
-
-To try it out, paste the URL in the browser or go the edit page:
-  http://yuml.me/diagram/scruffy/class/draw
-
-
-== Links
-
-=== API Blueprint
-
-* Official website: 
-  http://apiblueprint.org/
-
-* Good walkthrough by examples: 
-  https://github.com/apiaryio/api-blueprint/tree/master/examples
-
-* The complete specification:
-  https://github.com/apiaryio/api-blueprint/blob/master/API%20Blueprint%20Specification.md
-
-
-=== API Blueprint & Markdown
-
-The API Blueprint uses an extended version of Markdown (see section 2 of the API Blueprint specification) :
-
-* Official Markdown syntax
-  http://daringfireball.net/projects/markdown/syntax
-
-* Metadata and Cross-References of MultiMarkdown syntax
-  https://github.com/fletcher/MultiMarkdown/blob/master/Documentation/MultiMarkdown%20User%27s%20Guide.md#multimarkdown-syntax-guide
-
-* GitHub Flavored MarkDown's newlines & fenced code blocks
-  https://help.github.com/articles/github-flavored-markdown
+* [API Blueprint: Official website](http://apiblueprint.org/)
+* [API Blueprint: Good walkthrough by examples](https://github.com/apiaryio/api-blueprint/tree/master/examples)
+* [API Blueprint: The complete specification](https://github.com/apiaryio/api-blueprint/blob/master/API%20Blueprint%20Specification.md)
+* [Markdown: Official syntax](http://daringfireball.net/projects/markdown/syntax)
+* [Markdown: Metadata and Cross-References of MultiMarkdown syntax](https://github.com/fletcher/MultiMarkdown/blob/master/Documentation/MultiMarkdown%20User%27s%20Guide.md#multimarkdown-syntax-guide)
+* [Markdown: GitHub Flavored MarkDown's newlines & fenced code blocks](https://help.github.com/articles/github-flavored-markdown)
+* [Yuml: How to generate UML diagrams from text (examples)](http://yuml.me/diagram/scruffy/class/samples)
+* [Yuml: Diagram Editor](http://yuml.me/diagram/scruffy/class/draw)
 
