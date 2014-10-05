@@ -1,0 +1,14 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+GET     /tables                     controllers.Application.tables()
+GET     /variations/:id             controllers.Application.variation(id: String)
+GET     /variations/search/:query   controllers.Application.variationsSearch(query: String, fields: String ?= null, offset: Int ?= 0, limit: Int ?= 2147483647)
+
+# Home page
+GET     /                           controllers.Application.index()
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.at(path="/public", file)
+
+# TEMPORARY PATCH: Allow Cross Origin Resource Sharing
+OPTIONS /*path                      controllers.Application.cors(path: String)
