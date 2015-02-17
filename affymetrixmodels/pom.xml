@@ -36,6 +36,7 @@ http://media.affymetrix.com/support/developer/powertools/changelog/gcos-agcc/</d
   <build>
     <plugins>
       <plugin>
+        <!-- Required for Avro -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${maven.compiler.version}</version>
