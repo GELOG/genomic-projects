@@ -7,6 +7,9 @@
 bin/
 tmp/
 
+# Avro
+/src/main/java/org/bdgenomics/affymetrixformats/avro/*/*.java
+
 # Eclipse (CDT, JDT, PyDev, SBTEclipse)
 *.launch
 *.pydevproject

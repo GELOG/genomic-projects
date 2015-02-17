@@ -1,0 +1,11 @@
+/**
+ * An example protocol in Avro IDL
+ */
+@namespace("org.bdgenomics.affymetrixformats.avro.example")
+protocol SimpleProtocol {
+  record SimpleRecord {
+    string name;
+    boolean active = true;
+    long salary;
+  }
+}

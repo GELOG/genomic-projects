@@ -1,0 +1,13 @@
+@namespace("org.bdgenomics.affymetrixformats.avro.cel")
+protocol CelFormatProtocol {
+
+
+/**
+ To be continued
+ */
+record CelFormat_ToBeContinued {
+  union { null, int }  x = null;
+  union { null, int }  y = null;
+}
+
+}
