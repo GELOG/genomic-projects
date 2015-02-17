@@ -1,0 +1,31 @@
+# General
+.gradle
+*.bak
+*.swp
+*.tmp
+*~.nib
+bin/
+tmp/
+
+# Eclipse (CDT, JDT, PyDev, SBTEclipse)
+*.launch
+*.pydevproject
+.buildpath
+.classpath
+.cproject
+.externalToolBuilders/
+.loadpath
+.metadata
+.project
+.settings/
+.target
+.texlipse
+local.properties
+
+# Maven
+pom.xml.next
+pom.xml.releaseBackup
+pom.xml.tag
+pom.xml.versionsBackup
+release.properties
+target/
