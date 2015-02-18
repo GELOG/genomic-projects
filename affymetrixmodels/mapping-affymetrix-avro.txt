@@ -1,0 +1,20 @@
+Type     = Avro Type : Affymetrix description
+--------   ---------   -----------------------------
+BYTE     = int ?    :  8-bit integer (sometimes signed or unsigned)
+UBYTE    = int ?    :  8-bit unsigned integer
+SHORT    = int      : 16-bit signed integer
+USHORT   = int      : 16-bit unsigned integer
+INT      = int      : 32-bit signed integer
+UINT     = long     : 32-bit unsigned integer
+WORD     = int      : 16-bit unsigned integer
+DWORD    = long     : 32-bit unsigned integer
+FLOAT    = float    : 32-bit floating point number
+DOUBLE   = double   : 64-bit floating point number
+CHAR     = int ?    : A 1-byte character
+WCHAR    = int ?    : A 2-bytes character
+STRING   = string   : A 1-byte character string
+WSTRING  = string   : A UNICODE string.
+CONTROLLEDLIST = array <string> : An array of WSTRING.
+POINTS   =  n/a     : 2 * 16-bit integer (X,Y)
+POINTS.X = int      : X value of the POINTS structure
+POINTS.Y = int      : Y value of the POINTS structure
